@@ -1,0 +1,30 @@
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: azure-servicebus-auth
+spec:
+  podIdentity:
+    provider: azure
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: azure-servicebus-queue-scaledobject
+  namespace: default
+spec:
+  scaleTargetRef:
+    name: dapr-consumer
+  triggers:
+  - type: azure-servicebus
+    metadata:
+      # Required: queueName OR topicName and subscriptionName
+      queueName: testqueue
+      # or
+      # topicName: functions-sbtopic
+      # subscriptionName: sbtopic-sub1
+      # Required: Define what Azure Service Bus to authenticate to with Managed Identity
+      namespace: daprsbtest # Changeme on redeploy
+      # Optional
+      messageCount: "5" # default 5
+    authenticationRef:
+        name: azure-servicebus-auth # authenticationRef would need either podIdentity or define a connection parameter

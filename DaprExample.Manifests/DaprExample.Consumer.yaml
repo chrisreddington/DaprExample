@@ -1,0 +1,44 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: dapr-consumer
+  labels:
+    app: dapr-consumer
+spec:
+  selector:
+    app: dapr-consumer
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 5000
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dapr-consumer
+  labels:
+    app: dapr-consumer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dapr-consumer
+  template:
+    metadata:
+      labels:
+        app: dapr-consumer
+        aadpodidbinding: dapr-secrets-identity # This is the same name as what you have assigned to the name of the pod identity. For my implementation, this is the name of the pod identity created in the dapr-secretstore-setup.sh script.
+      annotations:
+        dapr.io/log-level: "debug"
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "dapr-consumer"
+        dapr.io/app-port: "5000"
+        dapr.io/app-ssl: "false"
+    spec:
+      containers:
+      - name: dapr-consumer
+        image: cwcaks.azurecr.io/daprexample/consumer:cb9
+        ports:
+        - containerPort: 5000
+        imagePullPolicy: Always

@@ -9,7 +9,7 @@ namespace DaprExample.Consumer.Controllers;
 [ApiController]
 public class ReceiverController : Controller
 {
-    [HttpPost("/azurebusbinding")]
+    [HttpPost("/azurebusnosecrets")]
     public ActionResult<string> getCheckout([FromBody] int orderId)
     {
         Console.WriteLine("Received Message: " + orderId);
