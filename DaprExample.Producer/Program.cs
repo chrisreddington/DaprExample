@@ -12,6 +12,7 @@ var counter = 0;
 // Keep looping every second, create a message by invoking the binding.
 while (true)
 {
+    Console.WriteLine($"Counter = {counter++}");
     await daprClient.InvokeBindingAsync(BINDING_NAME, BINDING_OPERATION, counter);
     await Task.Delay(200);
 }
