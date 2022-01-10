@@ -16,7 +16,7 @@ var environmentName = 'env-${uniqueString(resourceGroup().id)}'
 var minReplicas = 0
 var maxReplicas = 1
 
-var containerAppServiceAppName = 'producer-app'
+var containerAppServiceAppName = 'consumer-app'
 var workspaceName = '${containerAppServiceAppName}-log-analytics'
 var appInsightsName = '${containerAppServiceAppName}-app-insights'
 
@@ -125,11 +125,10 @@ resource containerApp 'Microsoft.Web/containerapps@2021-03-01' = {
       }
       dapr: {
         enabled: true
-        appPort: 3000
         appId: 'consumer'
         components: [
           {
-            name: 'statestore'
+            name: 'azurebusnosecrets'
             type: 'bindings.azure.servicebusqueues'
             version: 'v1'
             metadata: [
@@ -140,10 +139,6 @@ resource containerApp 'Microsoft.Web/containerapps@2021-03-01' = {
               {
                 name: 'queueName'
                 value: serviceBusQueueName
-              }
-              {
-                name: 'ttlInSeconds'
-                value: '60'
               }
             ]
           }
