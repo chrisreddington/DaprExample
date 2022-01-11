@@ -1,6 +1,6 @@
 /*
   This Bicep file takes several string paramter inputs, including - 
-  containerAppImage - Full docker image name, e.g. cwcaks.azurecr.io/daprexample/consumer:cb9
+  containerAppImage - Full docker image name, e.g. cwcaks.azurecr.io/daprexample/consumer:cbb
   containerRegistry - Full ACR URL, e.g. cwcaks.azurecr.io
   containerRegistryUsername - ACR Username, e.g. cwcaks
   serviceBusQueueName - Name of the queue that we want to consume from, e.g. testqueue
@@ -14,7 +14,7 @@ param serviceBusQueueName string
 /*
   This Bicep file takes a couple of securestring paramter inputs, including - 
   containerRegistryPassword - Password used to login to the Azure Container Registry (Note the ACR Admin access must be enabled).
-  serviceBusConnectionString - Connection string to access the Service Bus. Depending on whether this is an input/output binding, you'll need to make sure that you have send/listen permissions configured respectively on the appropriate queue.
+  serviceBusConnectionString - Connection string to access the Service Bus. Depending on whether this is an input/output binding, you'll need to make sure that you have send/listen permissions configured respectively on the appropriate queue. I believe manage permission is required at present, but need further testing to confirm.
 */
 @secure()
 param containerRegistryPassword string
@@ -42,7 +42,7 @@ param location string = resourceGroup().location
 var environmentName = 'env-${uniqueString(resourceGroup().id)}'
 var minReplicas = 0
 var maxReplicas = 1
-var containerAppServiceAppName = 'consumer-app'
+var containerAppServiceAppName = 'cwc-consumer'
 var workspaceName = '${containerAppServiceAppName}-log-analytics'
 var appInsightsName = '${containerAppServiceAppName}-app-insights'
 var containerRegistryPasswordRef = 'container-registry-password'
@@ -63,7 +63,7 @@ resource workspace 'Microsoft.OperationalInsights/workspaces@2020-08-01' = {
 }
 
 // Definition for the App Insights Resource
-resource appInsights 'Microsoft.Insights/components@2020-02-02-preview' = {
+resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
   name: appInsightsName
   location: location
   tags: tags
@@ -71,6 +71,7 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02-preview' = {
   properties: {
     Application_Type: 'web'
     Flow_Type: 'Bluefield'
+    WorkspaceResourceId: workspace.id
   }
 }
 
@@ -108,6 +109,11 @@ resource containerApp 'Microsoft.Web/containerapps@2021-03-01' = {
   properties: {
     kubeEnvironmentId: environment.id
     configuration: {
+      activeRevisionsMode: 'single'
+      ingress: {
+        external: false
+        targetPort: 5000
+      }
       secrets: [
         {
           name: containerRegistryPasswordRef
@@ -158,6 +164,7 @@ resource containerApp 'Microsoft.Web/containerapps@2021-03-01' = {
       }
       dapr: {
         enabled: true
+        appPort: 5000
         appId: 'consumer'
         components: [
           {
