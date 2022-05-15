@@ -2,7 +2,7 @@
 using Dapr.Client;
 
 // Set up the appropriate binding information
-string BINDING_NAME = "azurebusbinding";
+string BINDING_NAME = "decouple-with-queue";
 string BINDING_OPERATION = "create";
 
 // Initialise the counter to 0 and init the Dapr Client

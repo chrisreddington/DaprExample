@@ -18,7 +18,7 @@ public class ReceiverController : Controller
     }
 
 
-    [HttpPost("/azurebusnosecrets")]
+    [HttpPost("/decouple-with-queue")]
     public ActionResult<string> getCheckout([FromBody] int orderId)
     {
         _logger.LogInformation("Received Message: " + orderId);

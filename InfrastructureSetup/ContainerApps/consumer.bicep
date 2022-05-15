@@ -10,7 +10,7 @@
   storageQueueOutputName - Name of the queue used in Azure Storage Queues to output the messages
 */
 
-param containerAppImage string = 'daprtest:v1.0'
+param containerAppImage string = 'consumer:v1.0'
 param prefix string = 'cappatv'
 
 // Also take an object as an input for the tags parameter. This is used to cascade resource tags to all resources.
@@ -20,7 +20,6 @@ param tags object = {}
 param location string = resourceGroup().location
 
 param serviceBusInputQueueName string = 'ca-sb-queue-input'
-param serviceBusOutputQueueName string = 'ca-sb-queue-output'
 param storageQueueInputName string = 'ca-sa-queue-input'
 param storageQueueOutputName string = 'ca-sa-queue-output'
 
@@ -46,7 +45,7 @@ param storageQueueOutputName string = 'ca-sa-queue-output'
 var acrName = '${prefix}acr'
 var acrLoginServerName = '${prefix}acr.azurecr.io'
 var appInsightsName = '${prefix}-app-insights'
-var containerAppServiceAppName = 'mf-container-app'
+var containerAppServiceAppName = '${prefix}-container-app'
 var containerRegistryPasswordRef = 'container-registry-password'
 var environmentName = '${prefix}-kube-env'
 var minReplicas = 1
@@ -105,88 +104,8 @@ resource environment 'Microsoft.App/managedEnvironments@2022-01-01-preview' = {
   }
 }
 
-resource inputbinding1 'Microsoft.App/managedEnvironments/daprComponents@2022-01-01-preview' = {
-  name: 'inputbinding1'
-  parent: environment
-  properties: {
-    componentType: 'bindings.azure.storagequeues'
-    version: 'v1'
-    metadata: [
-      {
-        name: 'storageAccount'
-        secretRef: storageAccountNameRef
-      }
-      {
-        name: 'storageAccessKey'
-        secretRef: storageAccountKeyRef
-      }
-      {
-        name: 'queue'
-        value: storageQueueInputName
-      }
-      {
-        name: 'decodeBase64'
-        value: 'false'
-      }
-    ]
-    scopes: [
-      'consumer-app'
-    ]
-    secrets: [
-      {
-        name: storageAccountNameRef
-        value: sa.name
-      }
-      {
-        name: storageAccountKeyRef
-        value: listKeys(sa.id, sa.apiVersion).keys[0].value
-      }
-    ]
-  }
-}
-
-resource outputbinding1 'Microsoft.App/managedEnvironments/daprComponents@2022-01-01-preview' = {
-  name: 'outputbinding1'
-  parent: environment
-  properties: {
-    componentType: 'bindings.azure.storagequeues'
-    version: 'v1'
-    metadata: [
-      {
-        name: 'storageAccount'
-        secretRef: storageAccountNameRef
-      }
-      {
-        name: 'storageAccessKey'
-        secretRef: storageAccountKeyRef
-      }
-      {
-        name: 'queue'
-        value: storageQueueOutputName
-      }
-      {
-        name: 'decodeBase64'
-        value: 'false'
-      }
-    ]
-    scopes: [
-      'consumer-app'
-    ]
-    secrets: [
-      {
-        name: storageAccountNameRef
-        value: sa.name
-      }
-      {
-        name: storageAccountKeyRef
-        value: listKeys(sa.id, sa.apiVersion).keys[0].value
-      }
-    ]
-  }
-}
-
-resource inputbinding2 'Microsoft.App/managedEnvironments/daprComponents@2022-01-01-preview' = {
-  name: 'inputbinding2'
+resource queuebinding 'Microsoft.App/managedEnvironments/daprComponents@2022-01-01-preview' = {
+  name: 'decouple-with-queue'
   parent: environment
   properties: {
     componentType: 'bindings.azure.servicebusqueues'
@@ -208,66 +127,6 @@ resource inputbinding2 'Microsoft.App/managedEnvironments/daprComponents@2022-01
       {
         name: serviceBusConnectionStringRef
         value: listKeys(servicebusauthrule.id, servicebusauthrule.apiVersion).primaryConnectionString
-      }
-    ]
-  }
-}
-
-resource outputbinding2 'Microsoft.App/managedEnvironments/daprComponents@2022-01-01-preview' = {
-  name: 'outputbinding2'
-  parent: environment
-  properties: {
-    componentType: 'bindings.azure.servicebusqueues'
-    version: 'v1'
-    metadata: [
-      {
-        name: 'connectionString'
-        secretRef: serviceBusConnectionStringRef
-      }
-      {
-        name: 'queueName'
-        value: serviceBusOutputQueueName
-      }
-    ]
-    scopes: [
-      'consumer-app'
-    ]
-    secrets: [
-      {
-        name: serviceBusConnectionStringRef
-        value: listKeys(servicebusauthrule.id, servicebusauthrule.apiVersion).primaryConnectionString
-      }
-    ]
-  }
-}
-
-resource statestore 'Microsoft.App/managedEnvironments/daprComponents@2022-01-01-preview' = {
-  name: 'statestore'
-  parent: environment
-  properties: {
-    componentType: 'state.azure.blobstorage'
-    version: 'v1'
-    metadata: [
-      {
-          name: 'accountName'
-          value: sa.name
-      }
-      {
-          name: 'accountKey'
-          secretRef: storageAccountKeyRef
-      }
-      {
-          name: 'containerName'
-          value: 'test'
-      }
-    ]
-    scopes: [
-      'consumer-app'
-    ]
-    secrets: [
-      {
-        name: storageAccountKeyRef
-        value: listKeys(sa.id, sa.apiVersion).keys[0].value
       }
     ]
   }

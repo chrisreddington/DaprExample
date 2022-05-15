@@ -8,4 +8,4 @@ spec:
   version: v1
   metadata:
   - name: vaultName
-    value: daprkvtest
+    value: cappatv-kv
