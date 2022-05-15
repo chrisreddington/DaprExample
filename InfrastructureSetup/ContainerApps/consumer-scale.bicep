@@ -20,8 +20,6 @@ param tags object = {}
 param location string = resourceGroup().location
 
 param serviceBusInputQueueName string = 'ca-sb-queue-input'
-param storageQueueInputName string = 'ca-sa-queue-input'
-param storageQueueOutputName string = 'ca-sa-queue-output'
 
 /*
   This Bicep file uses several varaibles to aid in readability - 
@@ -54,8 +52,6 @@ var serviceBusAuthRule = '${prefix}-service-bus-auth-rule'
 var serviceBusConnectionStringRef = 'service-bus-connection-string'
 var serviceBusName = '${prefix}-service-bus'
 var storageAccountName = '${prefix}stg'
-var storageAccountNameRef = 'storage-account-name'
-var storageAccountKeyRef = 'storage-account-key'
 var workspaceName = '${prefix}-log-analytics'
 
 // Definition for the existing Log Analytics Workspace
