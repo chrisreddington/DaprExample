@@ -1,0 +1,68 @@
+POST http://localhost:6002/redirect HTTP/1.1
+content-type: application/json
+
+{
+  "shortUrl": "talk5",
+  "destinationUrl": "https://www.cloudwithchris.com/talk",
+  "medium": "Twitter",
+  "campaign": "RedirectTest",
+  "visits": 0
+}
+###
+GET http://localhost:6002/redirect/noexist HTTP/1.1
+###
+GET http://localhost:6002/redirect/blog HTTP/1.1
+
+###
+GET http://localhost:6002/redirect/episode HTTP/1.1
+
+###
+GET http://localhost:6002/redirect/talk HTTP/1.1
+
+
+###
+
+PUT http://localhost:6002/redirect/episode HTTP/1.1
+content-type: application/json
+
+{
+  "destinationUrl": "https://www.cloudwithchris.com/blog2",
+  "medium": "Twitter",
+  "campaign": "RedirectTest",
+  "visits": 0
+}
+
+###
+DELETE http://localhost:6002/redirect/episode HTTP/1.1
+
+###
+
+
+POST https://ep-redirect.kindmushroom-024772ae.westeurope.azurecontainerapps.io/redirect HTTP/1.1
+content-type: application/json
+
+{
+  "shortUrl": "abc123",
+  "destinationUrl": "https://www.cloudwithchris.com/blog",
+  "medium": "Twitter",
+  "campaign": "RedirectTest",
+  "visits": 0
+}
+
+###
+GET https://ep-redirect.kindmushroom-024772ae.westeurope.azurecontainerapps.io/redirect/abc123 HTTP/1.1
+
+###
+
+PUT https://ep-redirect.kindmushroom-024772ae.westeurope.azurecontainerapps.io/redirect/abc123 HTTP/1.1
+content-type: application/json
+
+{
+  "destinationUrl": "https://www.cloudwithchris.com/episode",
+  "medium": "Twitter",
+  "campaign": "RedirectTest",
+  "visits": 0
+}
+
+###
+DELETE https://ep-redirect.kindmushroom-024772ae.westeurope.azurecontainerapps.io/redirect/abc123 HTTP/1.1
