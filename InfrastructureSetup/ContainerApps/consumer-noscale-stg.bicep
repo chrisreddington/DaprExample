@@ -19,7 +19,7 @@ param tags object = {}
 // Set location as a parameter with a default of the Resource Group Location. This allows for overrides if needed, and is a templating best practice.
 param location string = resourceGroup().location
 
-param serviceBusInputQueueName string = 'ca-sb-queue-input'
+param storageQueueInputName string = 'ca-sb-queue-input'
 
 /*
   This Bicep file uses several varaibles to aid in readability - 
@@ -44,9 +44,8 @@ var appInsightsName = '${prefix}-app-insights'
 var containerAppServiceAppName = '${prefix}-container-app'
 var containerRegistryPasswordRef = 'container-registry-password'
 var environmentName = '${prefix}-kube-env'
-var serviceBusAuthRule = '${prefix}-service-bus-auth-rule'
-var serviceBusConnectionStringRef = 'service-bus-connection-string'
-var serviceBusName = '${prefix}-service-bus'
+var storageAccountNameRef = 'storage-account-name'
+var storageAccountKeyRef = 'storage-account-key'
 var storageAccountName = '${prefix}stg'
 var workspaceName = '${prefix}-log-analytics'
 
@@ -70,14 +69,7 @@ resource sa 'Microsoft.Storage/storageAccounts@2021-04-01' existing = {
   name: storageAccountName
 }
 
-resource servicebusnamespace 'Microsoft.ServiceBus/namespaces@2021-06-01-preview' existing = {
-  name: serviceBusName
-}
 
-resource servicebusauthrule 'Microsoft.ServiceBus/namespaces/AuthorizationRules@2021-06-01-preview' existing = {
-  name: serviceBusAuthRule
-  parent: servicebusnamespace
-}
 
 // Definition for the Azure Container Apps Environment
 resource environment 'Microsoft.App/managedEnvironments@2022-01-01-preview' = {
@@ -96,20 +88,28 @@ resource environment 'Microsoft.App/managedEnvironments@2022-01-01-preview' = {
   }
 }
 
-resource queuebinding 'Microsoft.App/managedEnvironments/daprComponents@2022-01-01-preview' = {
+resource inputbinding1 'Microsoft.App/managedEnvironments/daprComponents@2022-01-01-preview' = {
   name: 'decouple-with-queue'
   parent: environment
   properties: {
-    componentType: 'bindings.azure.servicebusqueues'
+    componentType: 'bindings.azure.storagequeues'
     version: 'v1'
     metadata: [
       {
-        name: 'connectionString'
-        secretRef: serviceBusConnectionStringRef
+        name: 'storageAccount'
+        secretRef: storageAccountNameRef
       }
       {
-        name: 'queueName'
-        value: serviceBusInputQueueName
+        name: 'storageAccessKey'
+        secretRef: storageAccountKeyRef
+      }
+      {
+        name: 'queue'
+        value: storageQueueInputName
+      }
+      {
+        name: 'decodeBase64'
+        value: 'false'
       }
     ]
     scopes: [
@@ -117,8 +117,12 @@ resource queuebinding 'Microsoft.App/managedEnvironments/daprComponents@2022-01-
     ]
     secrets: [
       {
-        name: serviceBusConnectionStringRef
-        value: listKeys(servicebusauthrule.id, servicebusauthrule.apiVersion).primaryConnectionString
+        name: storageAccountNameRef
+        value: sa.name
+      }
+      {
+        name: storageAccountKeyRef
+        value: listKeys(sa.id, sa.apiVersion).keys[0].value
       }
     ]
   }
@@ -159,10 +163,6 @@ resource containerApp 'Microsoft.App/containerapps@2022-01-01-preview' = {
         {
           name: containerRegistryPasswordRef
           value: listCredentials(acr.id, acr.apiVersion).passwords[0].value
-        }
-        {
-          name: serviceBusConnectionStringRef
-          value: listKeys(servicebusauthrule.id, servicebusauthrule.apiVersion).primaryConnectionString
         }
       ]
     }

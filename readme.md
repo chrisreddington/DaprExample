@@ -53,4 +53,4 @@ This is a to-do item for this sample, and welcomes any contributions.
 
 # License
 
-  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./License)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
